@@ -249,6 +249,7 @@ class Pacdef:
 
     def _show_unmanaged_packages(self) -> None:
         """Print unmanaged packages to STDOUT."""
+        
         unmanaged_packages = calc_unmanaged_packages(
             get_managed_packages(self._groups),
             self._db.get_explicitly_installed_packages(),

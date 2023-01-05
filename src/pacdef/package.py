@@ -4,7 +4,7 @@ import logging
 import re
 
 from .constants import EXIT_ERROR
-
+import subprocess
 
 class Package:
     """Class that represents a single package."""
@@ -20,6 +20,7 @@ class Package:
         self.name, self.repo = self._split_into_name_and_repo(package_string)
         if len(self.name) == 0:
             raise ValueError("invalid package name, is empty")
+        self.description = self._get_description(package_string)
 
     # noinspection PyUnresolvedReferences
     def __eq__(self, other: object):
@@ -45,8 +46,16 @@ class Package:
             result = f"{self.repo}/{self.name}"
         else:
             result = self.name
-        return result
+        return result+ " # "+self.description
 
+    def _get_description(self, package_string: str) -> str:
+        package_info = subprocess.check_output(['pacman', '-Qi', package_string]).decode('utf-8')
+        description = None
+        for item in package_info.split('\n'):
+            if re.match(r'^(Description)', item):
+                description = item
+        return description.split(':',1)[1]
+    
     @staticmethod
     def _split_into_name_and_repo(package_string: str) -> tuple[str, str | None]:
         """Take a string in the form `repository/package`, return package and repository.

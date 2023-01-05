@@ -5,7 +5,6 @@ from .args import Arguments
 from .group import Group
 from .package import Package
 
-
 def calc_unmanaged_packages(
     managed_packages: list[Package], explicitly_installed_packages: list[Package]
 ) -> list[Package]:
@@ -21,7 +20,6 @@ def calc_unmanaged_packages(
 
     unmanaged_packages = list(set_explicit - set_managed)
     unmanaged_packages.sort()
-
     logging.debug(f"{unmanaged_packages=}")
 
     return unmanaged_packages

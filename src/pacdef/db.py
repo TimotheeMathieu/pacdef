@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import multiprocessing as mp
 import sys
 from pathlib import Path
 
@@ -37,11 +38,14 @@ class DB:
             logging.error("pyalpm not installed")
             sys.exit(EXIT_ERROR)
 
-        instances = [
-            Package(pkg.name)  # pyright: ignore[reportUnknownArgumentType]
-            for pkg in self._db.pkgcache
-            if pkg.reason == pyalpm.PKG_REASON_EXPLICIT
-        ]
+        # parallel parsing of packages
+        n_cpus = max(1, (3*mp.cpu_count()) // 4)# use 3/4 of the cpus.
+        pool = mp.Pool(n_cpus) 
+        instances = pool.map(Package,
+                             [pkg.name
+                              for pkg in self._db.pkgcache
+                              if pkg.reason == pyalpm.PKG_REASON_EXPLICIT]) 
+
         return instances
 
     def get_all_installed_packages(self) -> list[Package]:

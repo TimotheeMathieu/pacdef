@@ -6,7 +6,7 @@ from pathlib import Path
 
 from .constants import COMMENT, EXIT_ERROR
 from .package import Package
-
+import multiprocessing as mp
 
 class Group:
     """Class representing a group file."""
@@ -68,10 +68,11 @@ class Group:
         text = path.read_text()
         lines = text.split("\n")
         packages = []
-        for line in lines:
-            package = cls._get_package_from_line(line)
-            if package is not None:
-                packages.append(package)
+        # parallel parsing of packages
+        n_cpus = max(1, (3*mp.cpu_count()) // 4)# use 3/4 of the cpus.
+        pool = mp.Pool(n_cpus) 
+        packages = pool.map(cls._get_package_from_line, lines) 
+        packages = [package for package in packages if package is not None]
         instance = cls(packages, path)
         return instance
 

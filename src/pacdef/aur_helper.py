@@ -10,10 +10,11 @@ from .constants import EXIT_ERROR
 from .package import Package
 from .path import file_exists
 
+def _uncomment_package_str(packages: list[str])->list[str]:
+    return [package.split('#',1)[0].strip() for package in packages]
 
 class Switches:
     """CLI switches for AUR helpers that wrap pacman."""
-
     install = ["--sync", "--refresh", "--needed"]
     remove = ["--remove", "--recursive"]
     installed_package_info = ["--query", "--info"]
@@ -58,7 +59,7 @@ class AURHelper:
 
         :param packages: list of packages to be installed.
         """
-        packages_str = [str(p) for p in packages]
+        packages_str = _uncomment_package_str([str(p) for p in packages])
         command: list[str] = Switches.install + packages_str
         self._execute(command)
 
@@ -67,8 +68,12 @@ class AURHelper:
 
         :param packages: list of packages to be removed.
         """
-        packages_str = [str(p) for p in packages]
-        command: list[str] = Switches.remove + packages_str
+        config = Config()
+        aur_helper_rm_args: list[str] = config.aur_helper_rm_args or []
+        switches_remove: list[str] = list(set(Switches.remove + aur_helper_rm_args))
+
+        packages_str: list[str] = _uncomment_package_str([str(p) for p in packages])
+        command: list[str] = switches_remove + packages_str
         self._execute(command)
 
     @classmethod
@@ -82,8 +87,8 @@ class AURHelper:
 
     def print_info(self, package: Package) -> None:
         """Print info for an installed package."""
-        self._execute(Switches.installed_package_info + [str(package)])
+        self._execute(Switches.installed_package_info + _uncomment_package_str([str(package)]))
 
     def as_dependency(self, packages: list[Package]) -> None:
         """Mark packages as "installed as dependency"."""
-        self._execute(Switches.as_dependency + [str(package) for package in packages])
+        self._execute(Switches.as_dependency + _uncomment_package_str([str(package) for package in packages]))
