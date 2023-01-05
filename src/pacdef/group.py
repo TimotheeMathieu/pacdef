@@ -52,7 +52,7 @@ class Group:
     @property
     def content(self) -> str:
         """Representation are the newline-separated names of the packages."""
-        return "\n".join([package.name for package in self.packages])
+        return "\n".join([package.name + " # "+package.description for package in self.packages])
 
     def __repr__(self):
         return f"group: {self.name}"
